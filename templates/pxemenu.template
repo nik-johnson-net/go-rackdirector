@@ -1,0 +1,39 @@
+UI menu.c32
+DEFAULT {{ .Default }}
+TIMEOUT 50
+
+
+MENU TITLE echo-pxe-boot for {{ .Hostname }}
+
+LABEL centos-8-manual
+ MENU LABEL ^Install CentOS 8
+ KERNEL http://{{ .OSServer }}/images/CentOS-8-1905/images/pxeboot/vmlinuz
+ INITRD http://{{ .OSServer }}/images/CentOS-8-1905/images/pxeboot/initrd.img
+ APPEND ip=dhcp inst.repo=http://{{ .OSServer }}/images/CentOS-8-1905/ inst.text
+
+LABEL centos-8
+ MENU LABEL Install CentOS 8 (Automatic)
+ KERNEL http://{{ .OSServer }}/images/CentOS-8-1905/images/pxeboot/vmlinuz
+ INITRD http://{{ .OSServer }}/images/CentOS-8-1905/images/pxeboot/initrd.img
+ APPEND ip=dhcp inst.repo=http://{{ .OSServer }}/images/CentOS-8-1905/ inst.text inst.ks=http://{{ .Server }}/installseed
+
+LABEL centos-7-manual
+ MENU LABEL Install CentOS 7
+ KERNEL http://{{ .OSServer }}/images/CentOS-7-1908/images/pxeboot/vmlinuz
+ INITRD http://{{ .OSServer }}/images/CentOS-7-1908/images/pxeboot/initrd.img
+ APPEND ip=dhcp inst.repo=http://{{ .OSServer }}/images/CentOS-7-1908/ inst.text
+
+LABEL centos-7
+ MENU LABEL Install CentOS 7 (Automatic)
+ KERNEL http://{{ .OSServer }}/images/CentOS-7-1908/images/pxeboot/vmlinuz
+ INITRD http://{{ .OSServer }}/images/CentOS-7-1908/images/pxeboot/initrd.img
+ APPEND ip=dhcp inst.repo=http://{{ .OSServer }}/images/CentOS-7-1908/ inst.text inst.ks=http://{{ .Server }}/installseed
+
+LABEL memtest
+  MENU LABEL ^Memtest86+
+  LINUX http://{{ .OSServer }}/images/memtest86+
+
+LABEL localboot
+ MENU LABEL ^Boot from local drive
+ MENU DEFAULT
+ LOCALBOOT 0xffff

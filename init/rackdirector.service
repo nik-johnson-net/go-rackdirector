@@ -1,0 +1,17 @@
+[Unit]
+Description=Rackdirector
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/rackdirector
+ExecStart=/opt/rackdirector/rackdirector
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+
+mkdir /dev/hugepages1G
+mount -t hugetlbfs -o pagesize=1G none /dev/hugepages1G
+mkdir /dev/hugepages2M
+mount -t hugetlbfs -o pagesize=2M none /dev/hugepages2M

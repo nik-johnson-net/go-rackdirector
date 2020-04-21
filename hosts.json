@@ -1,0 +1,93 @@
+{
+    "hosts": [{
+        "hostname": "node-1.echo1.jnstw.net",
+        "interfaces": [{
+            "device": "eno1",
+            "port": "ge-0/0/1.0:compute",
+            "ipv4": "192.168.30.16/24",
+            "ipv4_gateway": "192.168.30.1"
+        },{
+            "device": "eno2",
+            "port": "ge-0/0/3.0:storage",
+            "ipv4": "192.168.31.16/24"
+        }],
+        "bmc": {
+            "hostname": "node-1.echo1-mgmt.jnstw.net",
+            "port": "ge-0/0/5.0:management",
+            "ipv4": "192.168.32.16/24",
+            "ipv4_gateway": "192.168.32.1"
+        }
+    },{
+        "hostname": "node-2.echo1.jnstw.net",
+        "interfaces": [{
+            "device": "eno1",
+            "port": "ge-0/0/7.0:compute",
+            "ipv4": "192.168.30.17/24",
+            "ipv4_gateway": "192.168.30.1"
+        },{
+            "device": "eno2",
+            "port": "ge-0/0/9.0:storage",
+            "ipv4": "192.168.31.17/24"
+        }],
+        "bmc": {
+            "hostname": "node-2.echo1-mgmt.jnstw.net",
+            "port": "ge-0/0/11.0:management",
+            "ipv4": "192.168.32.17/24",
+            "ipv4_gateway": "192.168.32.1"
+        }
+    },{
+        "hostname": "node-3.echo1.jnstw.net",
+        "interfaces": [{
+            "device": "eno1",
+            "port": "ge-0/0/13.0:compute",
+            "ipv4": "192.168.30.18/24",
+            "ipv4_gateway": "192.168.30.1"
+        },{
+            "device": "eno2",
+            "port": "ge-0/0/15.0:storage",
+            "ipv4": "192.168.31.18/24"
+        }],
+        "bmc": {
+            "hostname": "node-3.echo1-mgmt.jnstw.net",
+            "port": "ge-0/0/17.0:management",
+            "ipv4": "192.168.32.18/24",
+            "ipv4_gateway": "192.168.32.1"
+        }
+    },{
+        "hostname": "node-4.echo1.jnstw.net",
+        "interfaces": [{
+            "device": "eno1",
+            "port": "ge-0/0/25.0:compute",
+            "ipv4": "192.168.30.19/24",
+            "ipv4_gateway": "192.168.30.1"
+        },{
+            "device": "eno2",
+            "port": "ge-0/0/27.0:storage",
+            "ipv4": "192.168.31.19/24"
+        }],
+        "bmc": {
+            "hostname": "node-4.echo1-mgmt.jnstw.net",
+            "port": "ge-0/0/29.0:management",
+            "ipv4": "192.168.32.19/24",
+            "ipv4_gateway": "192.168.32.1"
+        }
+    },{
+        "hostname": "node-5.echo1.jnstw.net",
+        "interfaces": [{
+            "device": "eno1",
+            "port": "ge-0/0/31.0:compute",
+            "ipv4": "192.168.30.20/24",
+            "ipv4_gateway": "192.168.30.1"
+        },{
+            "device": "eno2",
+            "port": "ge-0/0/33.0:storage",
+            "ipv4": "192.168.31.20/24"
+        }],
+        "bmc": {
+            "hostname": "node-4.echo1-mgmt.jnstw.net",
+            "port": "ge-0/0/35.0:management",
+            "ipv4": "192.168.32.20/24",
+            "ipv4_gateway": "192.168.32.1"
+        }
+    }]
+}
