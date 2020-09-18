@@ -1,0 +1,59 @@
+text
+
+skipx
+zerombr
+
+# Setting up authentication and keyboard
+auth --enableshadow --passalgo=sha512
+keyboard --vckeymap=us --xlayouts='us'
+
+# Accept the eula
+eula --agreed
+
+# Using only primary disk, ignoring others
+ignoredisk --only-use=sda
+
+# Setting up language to English
+lang en-US.UTF-8
+
+# Setting up network interface to DHCP
+{{ range .Interfaces }}
+network --device={{ .Device }} --bootproto=static --ip={{ .IPv4Address }} --hostname={{ $.Hostname }} {{ if .IPv4Gateway }}--gateway={{ .IPv4Gateway }} --activate{{ end }} --netmask={{ .IPv4Netmask }} --nameserver={{ range $index, $e := $.DNS }}{{ if $index }},{{ end }}{{ $e }}{{ end }} --ipv6=auto --onboot=yes
+{{ end }}
+
+# Root password (remember that plaintext only for information purposes)
+rootpw "red bird pounce flag"
+
+# Setting up firewall and enabling SSH for remote management
+firewall --enabled --ssh
+
+# Setting timezone
+timezone --utc Etc/UTC
+
+# Setting up Security-Enhanced Linux into enforcing
+selinux --enforcing
+
+# Setting up MBR
+bootloader --location=mbr --boot-drive=sda
+
+# Setting up Logical Volume Manager and autopartitioning
+clearpart --all --drives=sda --initlabel
+reqpart --add-boot
+part pv.1 --ondisk=sda --grow
+volgroup bootdrive pv.1
+logvol / --vgname=bootdrive --size=10240 --name=root
+
+# Eject cdrom and reboot
+reboot --eject
+
+repo --name=elrepo-kernel --baseurl=https://elrepo.org/linux/kernel/el8/x86_64/
+
+# Installing only packages for minimal install
+%packages --excludedocs
+elrepo-release
+chrony
+%end
+
+%post --erroronfail
+curl "http://{{ .Server }}/api/advanceplan"
+%end

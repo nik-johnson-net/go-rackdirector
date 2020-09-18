@@ -30,7 +30,11 @@ const (
 	// FilenameEfi64Syslinux is the request path to EFI64 Syslinux file
 	FilenameEfi64Syslinux = "efi64/syslinux.efi"
 
+	// FilenameUndionly is the request path to the Undionly file
 	FilenameUndionly = "undionly.kpxe"
+
+	// FilenameIPXE is the request path to the iPXE file
+	FilenameIPXE = "ipxe.efi"
 )
 
 // Tftpd runs a TFTP server for serving chainload netboot files.
@@ -44,6 +48,8 @@ type Tftpd struct {
 func (t *Tftpd) fileMapping(filename string) (string, error) {
 	filename = strings.TrimPrefix(filename, "/")
 	switch filename {
+	case FilenameIPXE:
+		return filepath.Join(t.Basedir, FilenameIPXE), nil
 	case FilenameUndionly:
 		return filepath.Join(t.Basedir, FilenameUndionly), nil
 	case FilenameBiosPxelinux:
@@ -62,26 +68,27 @@ func (t *Tftpd) fileMapping(filename string) (string, error) {
 func (t *Tftpd) readHandler(filename string, rf io.ReaderFrom) error {
 	fileToOpen, err := t.fileMapping(filename)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%v\n", err)
+		fmt.Fprintf(os.Stderr, "TFTP: Error answering request for %s: %v\n", filename, err)
 		return err
 	}
 	file, err := os.Open(fileToOpen)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%v\n", err)
+		fmt.Fprintf(os.Stderr, "TFTP: Error answering request for %s: %v\n", filename, err)
 		return err
 	}
 	// Set transfer size before calling ReadFrom.
 	stat, err := file.Stat()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%v\n", err)
+		fmt.Fprintf(os.Stderr, "TFTP: Error answering request for %s: %v\n", filename, err)
+		return err
 	}
 	rf.(tftp.OutgoingTransfer).SetSize(stat.Size())
 	n, err := rf.ReadFrom(file)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%v\n", err)
+		fmt.Fprintf(os.Stderr, "TFTP: Error answering request for %s: %v\n", filename, err)
 		return err
 	}
-	fmt.Printf("%d bytes sent\n", n)
+	fmt.Printf("TFTP: Requested %s, Sent %s: %d bytes sent\n", filename, fileToOpen, n)
 	return nil
 }
 

@@ -21,16 +21,20 @@ run: package
 clean:
 	rm -rf build/
 
-package: cmd/rackdirector/rackdirector build/ipxe/src/bin/undionly.kpxe hosts.json build/package/http/efi32/syslinux.0 build/package/http/efi64/syslinux.0 build/package/http/bios/pxelinux.0 $(addprefix build/package/,$(TEMPLATES))
+package: cmd/rackdirector/rackdirector build/ipxe/src/bin/undionly.kpxe hosts.json build/package/http/efi32/syslinux.0 build/package/http/efi64/syslinux.0 build/package/http/bios/pxelinux.0 build/ipxe/src/bin-x86_64-efi/ipxe.efi $(addprefix build/package/,$(TEMPLATES))
 	mkdir -p build/package;
 	cp cmd/rackdirector/rackdirector build/package/rackdirector;
 	cp hosts.json build/package;
 	mkdir -p build/package/tftp;
 	cp build/ipxe/src/bin/undionly.kpxe build/package/tftp/undionly.kpxe;
+	cp build/ipxe/src/bin-x86_64-efi/ipxe.efi build/package/tftp/ipxe.efi;
 	mkdir -p build/package/http;
 
 cmd/rackdirector/rackdirector: $(GOFILES)
 	cd cmd/rackdirector && go build -v
+
+build/ipxe/src/bin-x86_64-efi/ipxe.efi: build/ipxe
+	cd build/ipxe/src && make bin-x86_64-efi/ipxe.efi
 
 build/ipxe/src/bin/undionly.kpxe: build/ipxe
 	cd build/ipxe/src && make bin/undionly.kpxe
