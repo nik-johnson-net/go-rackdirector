@@ -13,6 +13,7 @@ import (
 type Controller interface {
 	InstallSeed(peer net.IP) ([]byte, error)
 	PxeConfig(peer net.IP) ([]byte, error)
+	IPxeConfig(peer net.IP) ([]byte, error)
 	CurrentPlan(ip net.IP) (string, error)
 	SetPlan(ip net.IP, plan string) error
 	AdvancePlan(peer net.IP) error
@@ -51,12 +52,14 @@ func (h *HTTPD) ListenAndServe() (<-chan bool, error) {
 	h.endChan = endChan
 
 	muxer := http.NewServeMux()
+	muxer.HandleFunc("/config.ipxe", h.ipxe)
 	muxer.HandleFunc("/bios/pxelinux.cfg/default", h.pxelinux)
 	muxer.HandleFunc("/efi32/pxelinux.cfg/default", h.pxelinux)
 	muxer.HandleFunc("/efi64/pxelinux.cfg/default", h.pxelinux)
 	muxer.HandleFunc("/bios/", h.serveFile)
 	muxer.HandleFunc("/efi32/", h.serveFile)
 	muxer.HandleFunc("/efi64/", h.serveFile)
+	muxer.HandleFunc("/ipxe.efi", h.serveFile)
 	muxer.HandleFunc("/installseed", h.installSeed)
 	muxer.HandleFunc("/api/plan", h.plan)
 	muxer.HandleFunc("/api/advanceplan", h.advanceplan)
@@ -100,6 +103,20 @@ func (h *HTTPD) pxelinux(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(200)
 	w.Write(body)
+}
+
+func (h *HTTPD) ipxe(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(os.Stdout, "http ipxe\n")
+	address := getPeer(r)
+	body, err := h.Controller.IPxeConfig(address)
+	if err != nil {
+		fmt.Fprintf(os.Stdout, "http error %v\n", err)
+		panic(err)
+	}
+
+	w.WriteHeader(200)
+	w.Write(body)
+	log.Println("ipxe config to", address, "\n", string(body))
 }
 
 func (h *HTTPD) installSeed(w http.ResponseWriter, r *http.Request) {

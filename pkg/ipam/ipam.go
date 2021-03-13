@@ -194,7 +194,7 @@ func (s *StaticIpam) Handle(circuitID string, subscriberID string, macAddress ne
 					Lease:          86400,
 					Hostname:       h.Hostname,
 					DomainSearch:   getDomain(h.Hostname),
-					TFTPServerName: "192.168.0.10",
+					TFTPServerName: "10.0.1.10",
 				}, nil
 			}
 		}

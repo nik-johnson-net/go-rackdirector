@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 	"time"
@@ -47,20 +48,34 @@ type Tftpd struct {
 
 func (t *Tftpd) fileMapping(filename string) (string, error) {
 	filename = strings.TrimPrefix(filename, "/")
+	basename := path.Base(filename)
+	path := path.Dir(filename)
 	switch filename {
 	case FilenameIPXE:
 		return filepath.Join(t.Basedir, FilenameIPXE), nil
 	case FilenameUndionly:
 		return filepath.Join(t.Basedir, FilenameUndionly), nil
 	case FilenameBiosPxelinux:
+		fallthrough
 	case FilenameBiosGPxelinux:
+		fallthrough
 	case FilenameBiosIPxelinux:
+		fallthrough
 	case FilenameBiosLPxelinux:
 		return filepath.Join(t.Basedir, FilenameBiosLPxelinux), nil
 	case FilenameEfi32Syslinux:
+		fallthrough
 	case FilenameEfi64Syslinux:
 		return filepath.Join(t.Basedir, filename), nil
 	}
+
+	switch path {
+	case "efi64":
+		fallthrough
+	case "efi32":
+		return filepath.Join(t.Basedir, path, basename), nil
+	}
+
 	return "", os.ErrNotExist
 }
 

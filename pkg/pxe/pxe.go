@@ -3,6 +3,8 @@ package pxe
 import (
 	"bytes"
 	"fmt"
+	"log"
+	"math/rand"
 	"net"
 	"os"
 	"os/exec"
@@ -153,7 +155,51 @@ func (p *Pxe) PxeConfig(peer net.IP) ([]byte, error) {
 		Stage:     stage,
 		Default:   defaultMenu,
 		Server:    "10.0.1.10",
-		OSServer:  "192.168.0.10",
+		OSServer:  "storage.echo1.jnstw.net",
+		Netmask:   networkToNetmask(peerInfo.Interfaces[0].Network.Mask),
+		Gateway:   peerInfo.Interfaces[0].Ipv4Gateway.String(),
+		Interface: "eth0",
+	})
+	return buffer.Bytes(), err
+}
+
+func (p *Pxe) IPxeConfig(peer net.IP) ([]byte, error) {
+	plan, exists := p.hostPlans[peer.String()]
+	defaultMenu := "localboot"
+	stage := ""
+	if exists {
+		stage := plan.Stages[plan.CurrentStage]
+		if strings.HasPrefix(stage, "install-") {
+			split := strings.SplitN(stage, "-", 2)
+			defaultMenu = split[1]
+		} else {
+			defaultMenu = "rackdirector-environment"
+		}
+	}
+
+	peerInfo, err := p.IPAM.Get(peer)
+	if err != nil {
+		peerInfo.Hostname = fmt.Sprintf("echo-%s.echo.jnstw.net", randomString(8))
+		log.Println("server not found. Assigning random hostname", peerInfo.Hostname)
+		peerInfo.Interfaces = []ipam.Interface{
+			{
+				Network: net.IPNet{
+					IP:   net.ParseIP("192.168.0.0"),
+					Mask: net.CIDRMask(24, 32),
+				},
+				Ipv4Gateway: net.ParseIP("192.168.0.1"),
+			},
+		}
+	}
+
+	var buffer bytes.Buffer
+	err = p.StageTemplates.ExecuteTemplate(&buffer, "ipxemenu.template", pxeTemplate{
+		Hostname:  peerInfo.Hostname,
+		Address:   peer.String(),
+		Stage:     stage,
+		Default:   defaultMenu,
+		Server:    "10.0.1.10",
+		OSServer:  "storage.echo1.jnstw.net",
 		Netmask:   networkToNetmask(peerInfo.Interfaces[0].Network.Mask),
 		Gateway:   peerInfo.Interfaces[0].Ipv4Gateway.String(),
 		Interface: "eth0",
@@ -238,4 +284,14 @@ func (p *Pxe) findMgmt(ip net.IP) string {
 		panic(err)
 	}
 	return peerInfo.Bmc.Hostname
+}
+
+const charset = "abcdefghijklmnopqrstuvwxyz"
+
+func randomString(length int) string {
+	r := make([]byte, length)
+	for i := range r {
+		r[i] = charset[rand.Intn(len(charset))]
+	}
+	return string(r)
 }
