@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+
+	"github.com/nik-johnson-net/rackdirector/pkg/ipam"
 )
 
 type Controller interface {
@@ -45,6 +47,7 @@ type HTTPD struct {
 	FileDirectory string
 	endChan       chan<- bool
 	httpServer    http.Server
+	IPAM          *ipam.StaticIpam
 }
 
 func (h *HTTPD) ListenAndServe() (<-chan bool, error) {
@@ -63,6 +66,7 @@ func (h *HTTPD) ListenAndServe() (<-chan bool, error) {
 	muxer.HandleFunc("/installseed", h.installSeed)
 	muxer.HandleFunc("/api/plan", h.plan)
 	muxer.HandleFunc("/api/advanceplan", h.advanceplan)
+	muxer.HandleFunc("/api/lookup", h.lookup)
 	muxer.HandleFunc("/", h.handle404)
 	h.httpServer = http.Server{
 		Handler:  muxer,
@@ -116,7 +120,6 @@ func (h *HTTPD) ipxe(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(200)
 	w.Write(body)
-	log.Println("ipxe config to", address, "\n", string(body))
 }
 
 func (h *HTTPD) installSeed(w http.ResponseWriter, r *http.Request) {
@@ -174,4 +177,28 @@ func (h *HTTPD) plan(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(200)
 	w.Write(body)
+}
+
+func (h *HTTPD) lookup(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		hostname := r.URL.Query().Get("hostname")
+		host, err := h.IPAM.GetByHostname(hostname)
+		if err != nil {
+			w.WriteHeader(500)
+			w.Write([]byte(err.Error()))
+			return
+		}
+
+		err = json.NewEncoder(w).Encode(host)
+		if err != nil {
+			w.WriteHeader(500)
+			w.Write([]byte(err.Error()))
+			return
+		}
+
+		w.WriteHeader(200)
+	default:
+		w.WriteHeader(400)
+	}
 }

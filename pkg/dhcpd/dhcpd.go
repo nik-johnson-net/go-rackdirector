@@ -93,9 +93,11 @@ func (d *DHCPD) dhcpv4OnDiscover(m *dhcpv4.DHCPv4, localAddr net.IP, peer net.Ad
 		clientArch = m.ClientArch()[0]
 	}
 
-	if circuitID == "ge-0/0/29.0:management" {
+	/*if circuitID == "ge-0/0/29.0:management" {
 		fmt.Fprintf(os.Stderr, "BMC DHCP Request: %v", m.Summary())
-	}
+	} else {
+		fmt.Fprintf(os.Stderr, "Compute DHCP Request: %v", m.Summary())
+	}*/
 
 	response, err := d.DHCPv4Handler.Handle(circuitID, subscriberID, m.ClientHWAddr, m.GatewayIPAddr)
 	if err != nil {
@@ -104,20 +106,34 @@ func (d *DHCPD) dhcpv4OnDiscover(m *dhcpv4.DHCPv4, localAddr net.IP, peer net.Ad
 	}
 
 	// If it's EFI, HTTP syslinux. If not, chainload lpxelinux
+
 	switch clientArch {
 	case iana.INTEL_X86PC:
 		if userClass == "iPXE" {
-			modifiers = append(modifiers, dhcpv4.WithGeneric(dhcpv4.OptionBootfileName, []byte(fmt.Sprintf("http://%s/bios/lpxelinux.0", localAddr.String()))))
+			fmt.Printf("Serving legacy iPXE\n")
+			bootfile := fmt.Sprintf("http://%s/config.ipxe", localAddr.String())
+			modifiers = append(modifiers, dhcpv4.WithGeneric(dhcpv4.OptionBootfileName, []byte(bootfile)))
 		} else {
+			fmt.Printf("Serving legacy %s to load undionly.kpxe\n", userClass)
 			modifiers = append(modifiers, dhcpv4.WithGeneric(dhcpv4.OptionTFTPServerName, []byte(response.TFTPServerName)))
 			modifiers = append(modifiers, dhcpv4.WithGeneric(dhcpv4.OptionBootfileName, []byte("undionly.kpxe")))
 		}
-	case iana.EFI_IA32:
-		bootfile := "http://foo/efi32/syslinux.efi"
-		modifiers = append(modifiers, dhcpv4.WithGeneric(dhcpv4.OptionBootfileName, []byte(bootfile)))
-	case iana.EFI_X86_64:
-		bootfile := "http://foo/efi64/syslinux.efi"
-		modifiers = append(modifiers, dhcpv4.WithGeneric(dhcpv4.OptionBootfileName, []byte(bootfile)))
+	default:
+		switch userClass {
+		case "iPXE":
+			fmt.Printf("Serving UEFI (arch %s) iPXE\n", clientArch)
+			bootfile := fmt.Sprintf("http://%s/config.ipxe", localAddr.String())
+			modifiers = append(modifiers, dhcpv4.WithGeneric(dhcpv4.OptionBootfileName, []byte(bootfile)))
+		case "HTTPClient":
+			fmt.Printf("Serving UEFI (arch %s) HTTPClient to load ipxe\n", clientArch)
+			bootfile := fmt.Sprintf("http://%s/ipxe.efi", localAddr.String())
+			modifiers = append(modifiers, dhcpv4.WithGeneric(dhcpv4.OptionBootfileName, []byte(bootfile)))
+		default:
+			fmt.Printf("Serving UEFI (arch %s) %s to load ipxe\n", clientArch, userClass)
+			bootfile := "ipxe.efi"
+			modifiers = append(modifiers, dhcpv4.WithGeneric(dhcpv4.OptionBootfileName, []byte(bootfile)))
+			modifiers = append(modifiers, dhcpv4.WithGeneric(dhcpv4.OptionTFTPServerName, []byte(response.TFTPServerName)))
+		}
 	}
 
 	var replyType dhcpv4.MessageType
@@ -146,8 +162,10 @@ func (d *DHCPD) dhcpv4OnDiscover(m *dhcpv4.DHCPv4, localAddr net.IP, peer net.Ad
 
 	fmt.Fprintf(os.Stdout, "handing address %v to %v\n", response, circuitID)
 	reply, err := dhcpv4.NewReplyFromRequest(m, modifiers...)
-	if circuitID == "ge-0/0/29.0:management" {
+	/*if circuitID == "ge-0/0/29.0:management" {
 		fmt.Fprintf(os.Stderr, "BMC DHCP Reply: %v", reply.Summary())
-	}
+	} else {
+		fmt.Fprintf(os.Stderr, "Compute DHCP Reply: %v", reply.Summary())
+	}*/
 	return reply, err
 }

@@ -2,34 +2,34 @@
 
 dhcp
 
-menu {{ .Hostname }} Boot Menu
+menu ipxe: {{ .Hostname }} Boot Menu
 item centos-8-manual Install CentOS 8
 item centos-8 Install CentOS 8 (Automatic)
 item centos-7-manual Install CentOS 7
 item centos-7 Install CentOS 7 (Automatic)
-item memtest Memtest86+
+item memtest Memtest86
 item localboot Boot from local drive
 item shell Start iPXE shell
 choose --default {{ .Default }} --timeout 10000 bootselection && goto ${bootselection}
 
 :centos-8-manual
 initrd http://{{ .OSServer }}/images/CentOS-8-1905/images/pxeboot/initrd.img
-chain http://{{ .OSServer }}/images/CentOS-8-1905/images/pxeboot/vmlinuz initrd=initrd.img console=ttyS0,115200n8 ip=dhcp inst.repo=http://{{ .OSServer }}/images/CentOS-8-1905/ inst.text
+chain http://{{ .OSServer }}/images/CentOS-8-1905/images/pxeboot/vmlinuz initrd=initrd.img console=ttyS1,115200n8 ip=dhcp inst.repo=http://{{ .OSServer }}/images/CentOS-8-1905/ inst.text
 
 :centos-8
 initrd http://{{ .OSServer }}/images/CentOS-8-1905/images/pxeboot/initrd.img
-chain http://{{ .OSServer }}/images/CentOS-8-1905/images/pxeboot/vmlinuz initrd=initrd.img console=ttyS0,115200n8 ip=dhcp inst.repo=http://{{ .OSServer }}/images/CentOS-8-1905/ inst.text inst.ks=http://{{ .Server }}/installseed
+chain http://{{ .OSServer }}/images/CentOS-8-1905/images/pxeboot/vmlinuz initrd=initrd.img console=ttyS1,115200n8 ip=dhcp inst.repo=http://{{ .OSServer }}/images/CentOS-8-1905/ inst.text inst.ks=http://{{ .Server }}/installseed
 
 :centos-7-manual
 initrd http://{{ .OSServer }}/images/CentOS-7-1908/images/pxeboot/initrd.img
-chain http://{{ .OSServer }}/images/CentOS-7-1908/images/pxeboot/vmlinuz initrd=initrd.img console=ttyS0,115200n8 ip=dhcp inst.repo=http://{{ .OSServer }}/images/CentOS-7-1908/ inst.text
+chain http://{{ .OSServer }}/images/CentOS-7-1908/images/pxeboot/vmlinuz initrd=initrd.img console=ttyS1,115200n8 ip=dhcp inst.repo=http://{{ .OSServer }}/images/CentOS-7-1908/ inst.text
 
 :centos-7
 initrd http://{{ .OSServer }}/images/CentOS-7-1908/images/pxeboot/initrd.img
-chain http://{{ .OSServer }}/images/CentOS-7-1908/images/pxeboot/vmlinuz initrd=initrd.img console=ttyS0,115200n8 ip=dhcp inst.repo=http://{{ .OSServer }}/images/CentOS-7-1908/ inst.text inst.ks=http://{{ .Server }}/installseed
+chain http://{{ .OSServer }}/images/CentOS-7-1908/images/pxeboot/vmlinuz initrd=initrd.img console=ttyS1,115200n8 ip=dhcp inst.repo=http://{{ .OSServer }}/images/CentOS-7-1908/ inst.text inst.ks=http://{{ .Server }}/installseed
 
 :memtest
-chain http://{{ .OSServer }}/images/memtest86+
+chain http://{{ .OSServer }}/images/memtest/BOOTX64.efi
 
 :localboot
 exit 1 iPXE Exiting for local boot...

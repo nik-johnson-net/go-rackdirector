@@ -48,6 +48,7 @@ func main() {
 	httpd := httpd.HTTPD{
 		Controller:    &controller,
 		FileDirectory: "http",
+		IPAM:          ipamConfig,
 	}
 
 	httpDone, err := httpd.ListenAndServe()
